@@ -1,2 +1,2 @@
 #! /bin/bash
-python main.py debug
+python main.py {1}

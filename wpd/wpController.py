@@ -1,25 +1,22 @@
 import os.path as path
 import os
-from pickle import Unpickler
+from json import load
 from random import randrange as random
-from settings import Settings
-from LocalLogging.logger import Logger
+from settings import SettingsModel
+from LocalLogging.localLogger import Logger
 
 
-def readFiles():
-    settings = Settings()
-    settings.loadSettings()
+def readFiles(settings: SettingsModel):
     wpList: list[str] = []
-    with open(settings.wpListPath, 'rb') as file:
-        pickle = Unpickler(file)
-        wpList = pickle.load()
-    return (settings, wpList)
+    with open(settings.wpListPath, 'r') as file:
+        wpList = load(file)
+    return wpList
 
-def changeWallpaper(logger: Logger):
+def changeWallpaper(logger: Logger, settings: SettingsModel):
     try:
-        settings, wpList = readFiles()
+        wpList = readFiles(settings)
         if settings.enabled:
-            if settings.randomEnable == None:
+            if settings.enableRandom:
                 fileName = wpList[random(0, len(wpList))]
             else:
                 fileName = wpList[settings.currentIndex]
@@ -35,5 +32,6 @@ def changeWallpaper(logger: Logger):
                 logger.log('File not found.')
         else:
             logger.log('Wallpaper Daemon Disabled.')
+        return settings.stopDaemon
     except Exception as e:
-        print(str(e))
+        logger.error(e, 'Wallpaper change error.')
