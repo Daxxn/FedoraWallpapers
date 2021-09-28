@@ -1,7 +1,7 @@
 from models.fileTreeModel import FileInfo, ImageInfo
 import PySimpleGUI as gui
 import os.path as Path
-from json import JSONDecoder, JSONEncoder
+from pickle import Pickler, Unpickler
 
 class WPListView:
    def __init__(self, settingsPath) -> None:
@@ -12,10 +12,10 @@ class WPListView:
 
    def loadWPList(self, initialLoad=False):
       if Path.isfile(self.settingsPath):
-         if Path.splitext(self.settingsPath)[1] == '.json':
-            with open(self.settingsPath, 'r') as file:
-               decoder = JSONDecoder()
-               data = decoder.decode(file.read())
+         if Path.splitext(self.settingsPath)[1] == '.pcl':
+            with open(self.settingsPath, 'rb') as file:
+               pickle = Unpickler(file)
+               data = pickle.load()
                self.wpList = []
                for img in data:
                   self.wpList.append(ImageInfo(img))
@@ -25,12 +25,15 @@ class WPListView:
    def saveWPList(self, newPath: str = None):
       if newPath != None:
          self.settingsPath = newPath
-         fileMode = 'x'
+         fileMode = 'xb'
       else:
-         fileMode = 'w'
+         fileMode = 'wb'
       with open(self.settingsPath, fileMode) as file:
-         encoder = JSONEncoder(indent=3)
-         file.write(encoder.encode(self.wpList))
+         pickle = Pickler(file)
+         output = []
+         for wp in self.wpList:
+            output.append(wp.fullPath)
+         pickle.dump(output)
 
    def selectionChangedEvent(self, args):
       if len(args) > 0:
@@ -57,7 +60,11 @@ class WPListView:
       self.loadWPList()
    
    def saveListEvent(self):
-      print()
+      self.saveWPList()
+
+   def clearEvent(self):
+      self.wpList = []
+      self.updateList()
 
    def updateList(self):
       self.listBox.update(self.setDisplayList())
@@ -77,8 +84,8 @@ class WPListView:
          size=(200, 400)
       )
       layout = [
-         [gui.Button('Remove', key='remove-wp-list', expand_x=True)],
-         [gui.Button('Load', key='load-wp-list'), gui.Button('Save', key='save-wp-list')],
+         [gui.Button('Remove', key='remove-wp-list', enable_events=True, expand_x=True)],
+         [gui.Button('Load', enable_events=True, key='load-wp-list'), gui.Button('Save', enable_events=True, key='save-wp-list'), gui.Button('Clear List', enable_events=True, key='clear-wp-list')],
          [self.listBox]
       ]
       self.frame = gui.Frame('Selected Wallpapers', layout, size=(300, 900))

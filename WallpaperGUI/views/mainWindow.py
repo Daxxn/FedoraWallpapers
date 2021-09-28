@@ -43,10 +43,10 @@ class MainWindow:
          self.selectedFile = self.rootDir.searchTree(ids[0])
 
    def create(self):
-      self.currentSettings = SettingsManager('/home/Daxxn/Pictures/wallpaperSettings.json')
+      self.currentSettings = SettingsManager('/home/Daxxn/Pictures/wallpaperSettings.pcl')
       success = self.currentSettings.loadSettings()
       self.wpView = WPListView(
-         self.currentSettings.settings.wpListPath if success else '/home/Daxxn/Pictures/wallpaperList.json'
+         self.currentSettings.settings.wpListPath if success else '/home/Daxxn/Pictures/wallpaperList.pcl'
       )
       self.imageView = gui.Image(size=self.imageSize)
       self.fileTreeView = self.fileTree.create()
@@ -69,16 +69,16 @@ class MainWindow:
          print(values)
 
          if event == gui.WIN_CLOSED or event == 'Cancel':
-            break;
+            break
 
          elif event == 'tree-view':
             self.findSelection(values[event])
             if self.selectedFile != None:
                print(self.selectedFile.Name)
-               # try:
-               self.setImage()
-               # except Exception as e:
-               #    print(str(e))
+               try:
+                  self.setImage()
+               except Exception as e:
+                  print(str(e))
 
          elif event == 'add-selected-file':
             if self.selectedFile != None and self.selectedFile.isImage:
@@ -95,6 +95,9 @@ class MainWindow:
 
          elif event == 'save-wp-list':
             self.wpView.saveListEvent()
+
+         elif event == 'clear-wp-list':
+            self.wpView.clearEvent()
 
          elif event == 'open-folder':
             self.openDir()

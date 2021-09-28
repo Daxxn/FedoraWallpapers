@@ -4,6 +4,7 @@ from pickle import Pickler, Unpickler
 
 class SettingsModel:
    def __init__(self, enabled: bool, enableRandom: bool, wpListPath: str, interval: int) -> None:
+      self.bashScript: str = None
       self.enabled = enabled
       self.enableRandom = enableRandom
       self.wpListPath = wpListPath
@@ -13,7 +14,7 @@ class DefaultSettings:
    def __init__(self) -> None:
       self.enabled = True
       self.enableRandom = False
-      self.wpListPath = '/home/Daxxn/Pictures/wallpaperList.json'
+      self.wpListPath = '/home/Daxxn/Pictures/wallpaperList.pcl'
       self.interval = 20
 
 class SettingsManager:

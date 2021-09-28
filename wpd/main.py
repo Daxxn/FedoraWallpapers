@@ -2,6 +2,8 @@ import sys
 import daemon
 import time
 from wpController import changeWallpaper
+sys.path.append('/home/Daxxn/Code/Python/Libraries')
+from  import Logger
 
 def parseArgs():
     sys.argv
@@ -10,8 +12,8 @@ def parseArgs():
     else:
         return False
 
-def runDaemon():
-    print('Starting Daemon...')
+def runDaemon(logger: Logger):
+    logger.log('Starting Daemon...')
     with daemon.DaemonContext():
         while True:
             changeWallpaper()
@@ -22,9 +24,11 @@ def runDebug():
 
 def main(debugMode: bool) -> None:
     if debugMode:
-        # runDaemon()
+        logger = Logger('wpd')
+        # runDaemon(logger)
         print('run daemon')
     else:
+        logger = Logger('wpd-debug')
         runDebug()
 
 if __name__ == '__main__':

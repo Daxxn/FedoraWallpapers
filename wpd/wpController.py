@@ -1,32 +1,39 @@
-from json.decoder import JSONDecoder
 import os.path as path
 import os
-from json import JSONEncoder, JSONDecoder
+from pickle import Unpickler
 from random import randrange as random
+from settings import Settings
+from LocalLogging.logger import Logger
 
-bashScript = 'gsettings set org.gnome.desktop.background picture-uri "file://{0}"'
-wpListPath = '/home/Daxxn/Pictures/wallpaperList.json'
 
-def readWPFile():
-    result = []
-    with open(wpListPath, 'r') as file:
-        decoder = JSONDecoder()
-        result = decoder.decode(file.read())
-        print(result)
-    return result
+def readFiles():
+    settings = Settings()
+    settings.loadSettings()
+    wpList: list[str] = []
+    with open(settings.wpListPath, 'rb') as file:
+        pickle = Unpickler(file)
+        wpList = pickle.load()
+    return (settings, wpList)
 
-def changeWallpaper(manualSelect: int = None):
+def changeWallpaper(logger: Logger):
     try:
-        wpFiles = readWPFile()
-        if manualSelect == None:
-            fileName = wpFiles[random(0, len(wpFiles))]
+        settings, wpList = readFiles()
+        if settings.enabled:
+            if settings.randomEnable == None:
+                fileName = wpList[random(0, len(wpList))]
+            else:
+                fileName = wpList[settings.currentIndex]
+                settings.currentIndex += 1
+            if path.exists(fileName):
+                logger.log('Attempting wp change.')
+                status = os.system(settings.bashScript.format(fileName))
+                if status == 0:
+                    logger.log('Change made.')
+                else:
+                    logger.warn('Bash execution return an error.', status, settings.bashScript.format(fileName))
+            else:
+                logger.log('File not found.')
         else:
-            fileName = wpFiles[manualSelect]
-        if path.exists(fileName):
-            print('Attempting wp change.')
-            os.system(bashScript.format(fileName))
-            print('Change made.')
-        else:
-            print('File not found.')
+            logger.log('Wallpaper Daemon Disabled.')
     except Exception as e:
         print(str(e))
