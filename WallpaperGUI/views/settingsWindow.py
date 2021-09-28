@@ -4,6 +4,7 @@ import PySimpleGUI as gui
 class SettingsWindow:
    def __init__(self, settings: SettingsManager) -> None:
       self.settingsManager = settings
+      self.settingsManager.loadSettings()
       self.settingsManager.copy(settings.settings)
       self.window: gui.Window = None
       self.currentHash = settings.Hash
@@ -37,13 +38,26 @@ class SettingsWindow:
          'Some settings arent saved. close anyway?',
          visible=self.firstCloseAttempt
       )
+      self.stopDaemonCheck = gui.Checkbox(
+         'Stop Wallpaper Service',
+         default=self.settingsManager.StopDaemon,
+         enable_events=True,
+         key='stop-daemon-check'
+      )
       layout = [
+         [gui.Text('Script'), gui.Text(self.settingsManager.BashScript)],
          [self.enabledCheckBox],
          [self.randomCheckBox],
          [self.listFileTextBox],
          [self.intervalTextBox],
-         [gui.Button('Save & Exit', key='save-settings', enable_events=True)],
-         [self.saveMessageText]
+         [gui.Button(
+            'Save & Exit',
+            key='save-settings',
+            enable_events=True
+         )],
+         [self.saveMessageText],
+         [gui.HorizontalSeparator()],
+         [self.stopDaemonCheck]
       ]
       self.window = gui.Window(
          'Settings',
@@ -51,7 +65,7 @@ class SettingsWindow:
          enable_close_attempted_event=True,
          force_toplevel=True,
          resizable=False,
-         size=(250,300)
+         size=(450,300)
       )
 
    def show(self):
@@ -70,6 +84,9 @@ class SettingsWindow:
 
          elif event == 'enable-random-check':
             self.settingsManager.EnableRandom = values[event]
+
+         elif event == 'stop-daemon-check':
+            self.settingsManager.StopDaemon = values[event]
 
          elif event == 'interval-text':
             try:

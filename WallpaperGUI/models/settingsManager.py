@@ -1,21 +1,26 @@
 import os.path as Path
 import os
-from pickle import Pickler, Unpickler
+from json import dump, load
 
 class SettingsModel:
-   def __init__(self, enabled: bool, enableRandom: bool, wpListPath: str, interval: int) -> None:
-      self.bashScript: str = None
+   def __init__(self, bashScript: str, enabled: bool, enableRandom: bool, wpListPath: str, interval: int, stopDaemon: bool) -> None:
+      self.bashScript = bashScript
+      self.wpListPath = wpListPath
       self.enabled = enabled
       self.enableRandom = enableRandom
-      self.wpListPath = wpListPath
       self.interval = interval
+      self.currentIndex = 0
+      self.stopDaemon = stopDaemon
 
 class DefaultSettings:
    def __init__(self) -> None:
+      self.bashScript = 'gsettings set org.gnome.desktop.background picture-uri "file://{0}"'
       self.enabled = True
       self.enableRandom = False
       self.wpListPath = '/home/Daxxn/Pictures/wallpaperList.pcl'
       self.interval = 20
+      self.currentIndex = 0
+      self.stopDaemon = True
 
 class SettingsManager:
    def __init__(self, settingsPath) -> None:
@@ -24,18 +29,27 @@ class SettingsManager:
 
    def copy(self, settings: SettingsModel):
       self.settings = SettingsModel(
+         settings.bashScript,
          settings.enabled,
          settings.enableRandom,
          settings.wpListPath,
-         settings.interval
+         settings.interval,
+         settings.stopDaemon
       )
 
    def loadSettings(self):
       try:
          if Path.isfile(self.settingsPath):
-            with open(self.settingsPath, 'rb') as file:
-               pickler = Unpickler(file)
-               self.settings = pickler.load()
+            with open(self.settingsPath, 'r') as file:
+               data = load(file)
+               self.settings = SettingsModel(
+                  data['bashScript'],
+                  data['enabled'],
+                  data['enableRandom'],
+                  data['wpListPath'],
+                  data['interval'],
+                  data['stopDaemon']
+               )
             return True
          else:
             return False
@@ -44,12 +58,26 @@ class SettingsManager:
 
    def saveSettings(self):
       if Path.isfile(self.settingsPath):
-         with open(self.settingsPath, 'wb') as file:
-            pickler = Pickler(file)
-            pickler.dump(self.settings)
+         with open(self.settingsPath, 'w') as file:
+            output = {
+               'bashScript': self.settings.bashScript,
+               'enabled': self.settings.enabled,
+               'enableRandom': self.settings.enableRandom,
+               'wpListPath': self.settings.wpListPath,
+               'interval': self.settings.interval,
+               'stopDaemon': self.settings.stopDaemon
+            }
+            dump(output, file)
 
    def __str__(self):
-      return '{0}\t{1}\t{2}\t{3}\t{4}'.format(self.Enabled, self.EnableRandom, self.Interval, self.WPListPath, self.Hash)
+      return '{0}\t{1}\t{2}\t{3}\t{4}\t{5}'.format(
+         self.Enabled,
+         self.EnableRandom,
+         self.StopDaemon,
+         self.Interval,
+         self.WPListPath,
+         self.Hash
+      )
 
    @property
    def Hash(self):
@@ -57,7 +85,7 @@ class SettingsManager:
       byt = bytearray(self.WPListPath, 'utf-8')
       for i in range(len(byt)):
          wpListHash += i + byt[i]
-      return self.Interval + self.Enabled + self.EnableRandom + wpListHash
+      return self.Interval + self.Enabled + self.EnableRandom + wpListHash + self.StopDaemon
 
    @property
    def Enabled(self):
@@ -86,4 +114,15 @@ class SettingsManager:
    @Interval.setter
    def Interval(self, value: int):
       self.settings.interval = value
+
+   @property
+   def StopDaemon(self):
+      return self.settings.stopDaemon
+   @StopDaemon.setter
+   def StopDaemon(self, value: bool):
+      self.settings.stopDaemon = value
+   
+   @property
+   def BashScript(self):
+      return self.settings.bashScript
    

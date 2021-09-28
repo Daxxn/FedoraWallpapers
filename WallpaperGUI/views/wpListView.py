@@ -1,7 +1,7 @@
 from models.fileTreeModel import FileInfo, ImageInfo
 import PySimpleGUI as gui
 import os.path as Path
-from pickle import Pickler, Unpickler
+from json import dump, load
 
 class WPListView:
    def __init__(self, settingsPath) -> None:
@@ -11,29 +11,32 @@ class WPListView:
       self.loadWPList(True)
 
    def loadWPList(self, initialLoad=False):
-      if Path.isfile(self.settingsPath):
-         if Path.splitext(self.settingsPath)[1] == '.pcl':
-            with open(self.settingsPath, 'rb') as file:
-               pickle = Unpickler(file)
-               data = pickle.load()
-               self.wpList = []
-               for img in data:
-                  self.wpList.append(ImageInfo(img))
-            if not initialLoad:
-               self.updateList()
+      try:
+         if Path.isfile(self.settingsPath):
+            if Path.splitext(self.settingsPath)[1] == '.pcl':
+               with open(self.settingsPath, 'r') as file:
+                  data = load(file)
+                  self.wpList = []
+                  for img in data:
+                     self.wpList.append(ImageInfo(img))
+               if not initialLoad:
+                  self.updateList()
+                  return True
+         return False
+      except Exception:
+         return False
 
    def saveWPList(self, newPath: str = None):
       if newPath != None:
          self.settingsPath = newPath
-         fileMode = 'xb'
+         fileMode = 'x'
       else:
-         fileMode = 'wb'
+         fileMode = 'w'
       with open(self.settingsPath, fileMode) as file:
-         pickle = Pickler(file)
          output = []
          for wp in self.wpList:
             output.append(wp.fullPath)
-         pickle.dump(output)
+         dump(output, file)
 
    def selectionChangedEvent(self, args):
       if len(args) > 0:
