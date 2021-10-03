@@ -3,7 +3,7 @@ Description=Wallpaper Management Tool
 After=syslog.target
 
 [Service]
-Type=forking
+Type=simple
 ExecStart=/home/Daxxn/Code/Python/Projects/WallpaperManager/wpd/startupScript.sh
 
 [Install]

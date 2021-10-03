@@ -1,2 +1,2 @@
 #! /bin/bash
-python main.py {1}
+python ./wpd/main.py {1}

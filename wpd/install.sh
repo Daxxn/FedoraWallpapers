@@ -3,7 +3,7 @@
 if [ $1 = "install" ]
 then
    cp ./wp.service /etc/systemd/system/wp.service
-   chmod 777 /etc/systemd/system/wp.service
+   #chmod 644 /etc/systemd/system/wp.service
 
    systemctl daemon-reload
    systemctl start wp.service
