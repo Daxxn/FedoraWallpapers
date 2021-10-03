@@ -1,0 +1,11 @@
+[Unit]
+Description=Wallpaper Management Tool
+After=syslog.target
+
+[Service]
+Type=dbus
+BusName=com.daxxn.wpd
+ExecStart=/home/Daxxn/Code/Python/Projects/WallpaperManager/wpd/startupScript.sh
+
+[Install]
+WantedBy=multi-user.target
